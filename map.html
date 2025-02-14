@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Navigation with Directions</title>
+   
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #map {
+            width: 100%;
+            height: 500px;
+            margin-top: 10px;
+        }
+        #controls {
+            margin: 10px;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+        }
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        #directions {
+            text-align: left;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Truck Navigation with Turn-by-Turn Directions</h2>
+   
+    <div id="controls">
+        <input type="text" id="destination" placeholder="Enter Destination (e.g., Taj Mahal)" />
+        <button onclick="setDestination()">Set Destination</button>
+    </div>
+
+    <div id="map"></div>
+    <p id="status">Waiting for GPS signal...</p>
+    <div id="directions"><strong>Directions:</strong> <ul id="directionList"></ul></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        let map, truckMarker, destinationMarker, routeLayer;
+        const openRouteServiceApiKey = "5b3ce3597851110001cf6248aeab9a7ff629446ca97fdb891cc8bb1c"; // Replace with your API key
+        const nominatimApiUrl = "https://nominatim.openstreetmap.org/search?format=json&q=";
+
+        function initMap() {
+            // Initialize map (default Mumbai)
+            map = L.map('map').setView([19.0760, 72.8777], 12);
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Track truck's location
+            trackTruckLocation();
+        }
+
+        function trackTruckLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const truckLocation = [position.coords.latitude, position.coords.longitude];
+
+                        if (!truckMarker) {
+                            truckMarker = L.marker(truckLocation, { title: "Truck's Location" }).addTo(map);
+                        } else {
+                            truckMarker.setLatLng(truckLocation);
+                        }
+
+                        map.setView(truckLocation, 14);
+                        document.getElementById("status").innerText = `Truck Location: ${truckLocation[0].toFixed(5)}, ${truckLocation[1].toFixed(5)}`;
+
+                        // If destination is already set, update route
+                        if (destinationMarker) {
+                            updateRoute(truckLocation, destinationMarker.getLatLng());
+                        }
+                    },
+                    (error) => {
+                        console.error("Error fetching location:", error);
+                        document.getElementById("status").innerText = "Error fetching location.";
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                document.getElementById("status").innerText = "Geolocation not supported by this browser.";
+            }
+        }
+
+        function setDestination() {
+            const destinationName = document.getElementById("destination").value;
+            if (!destinationName) {
+                alert("Please enter a destination name.");
+                return;
+            }
+
+            // Fetch destination coordinates using OpenStreetMap (Nominatim)
+            fetch(nominatimApiUrl + encodeURIComponent(destinationName))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        alert("Destination not found. Try again.");
+                        return;
+                    }
+
+                    const destination = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+
+                    // Remove previous destination marker
+                    if (destinationMarker) map.removeLayer(destinationMarker);
+
+                    // Add new destination marker
+                    destinationMarker = L.marker(destination, { title: "Destination" }).addTo(map);
+
+                    document.getElementById("status").innerText = `Destination: ${destinationName}`;
+
+                    // If truck's location is available, calculate route
+                    if (truckMarker) {
+                        updateRoute(truckMarker.getLatLng(), destination);
+                    }
+                })
+                .catch(error => console.error("Error fetching destination:", error));
+        }
+
+        function updateRoute(source, destination) {
+            const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${openRouteServiceApiKey}&start=${source.lng},${source.lat}&end=${destination[1]},${destination[0]}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (routeLayer) map.removeLayer(routeLayer);
+
+                    const routeCoords = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                   
+                    // Draw route on map
+                    routeLayer = L.polyline(routeCoords, { color: 'blue', weight: 4 }).addTo(map);
+                   
+                    // Update real-time distance
+                    const distance = (data.routes[0].summary.distance / 1000).toFixed(2);
+                    document.getElementById("status").innerText += ` | Distance: ${distance} km`;
+
+                    // Display turn-by-turn directions
+                    displayDirections(data.routes[0].segments[0].steps);
+                })
+                .catch(error => console.error("Error fetching route:", error));
+        }
+
+        function displayDirections(steps) {
+            const directionList = document.getElementById("directionList");
+            directionList.innerHTML = ""; // Clear previous directions
+
+            steps.forEach((step, index) => {
+                const li = document.createElement("li");
+                li.innerText = `${index + 1}. ${step.instruction} (${(step.distance / 1000).toFixed(2)} km)`;
+                directionList.appendChild(li);
+            });
+        }
+
+        // Initialize map
+        initMap();
+    </script>
+</body>
+</html>
