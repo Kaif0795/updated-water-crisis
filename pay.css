@@ -1,0 +1,141 @@
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: black; /* Set background to black */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+/* Centering the container */
+.container {
+    background-color: #222; /* Darker background for contrast */
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 6px 18px rgba(255, 255, 255, 0.3); /* White glowing effect */
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Hover effect to make it pop */
+.container:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.5);
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+/* Styling form inputs */
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #ddd;
+    margin-bottom: 6px;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #333;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+input[type="number"]:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
+
+/* Payment Calculation Pop-out Effect */
+.result {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #111;
+    border-radius: 12px;
+    box-shadow: 0px 8px 20px rgba(255, 255, 255, 0.4);
+    display: none;
+    text-align: center;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.result.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Payment Amount Styling */
+#paymentAmount {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ff9800;
+    background: #222;
+    padding: 12px 20px;
+    border-radius: 8px;
+    display: inline-block;
+    box-shadow: 0px 6px 15px rgba(255, 152, 0, 0.6);
+}
+
+/* Center the Pay Now button */
+#payButton {
+    display: none;
+    width: 100%;
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+    h1 {
+        font-size: 22px;
+    }
+    button {
+        font-size: 16px;
+    }
+}
