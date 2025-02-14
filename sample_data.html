@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Data</title>
+</head>
+<body>
+    <h2>Sample Data (Major Indian Cities)</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>City</th>
+                <th>Rainfall (mm)</th>
+                <th>Temperature (°C)</th>
+                <th>Population Growth (%)</th>
+                <th>Water Availability (liters)</th>
+            </tr>
+        </thead>
+        <tbody id="data-table">
+        </tbody>
+    </table>
+
+    <script>
+        fetch("/get_data")
+        .then(response => response.json())
+        .then(data => {
+            let table = document.getElementById("data-table");
+            data.forEach(row => {
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${row.City}</td>
+                    <td>${row.Rainfall}</td>
+                    <td>${row.Temperature}</td>
+                    <td>${row.Population_Growth}</td>
+                    <td>${row.Water_Availability}</td>
+                `;
+                table.appendChild(tr);
+            });
+        })
+        .catch(error => console.error("Error fetching data:", error));
+    </script>
+</body>
+</html>
